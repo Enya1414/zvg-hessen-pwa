@@ -38,10 +38,26 @@ HESSEN_GERICHTE = {
 
 BASE_URL = "https://www.zvg-portal.de"
 
+
 def fetch_auctions(gericht_code, gericht_name):
-    url = f"{BASE_URL}/index.php?button=Termine%20suchen&land_abk=he&gericht_id={gericht_code}"
+    session = requests.Session()
+    session.headers.update({
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+    })
+
+    # Önce ana sayfaya git (cookie/session al)
+    session.get(f"{BASE_URL}/", timeout=30)
+
+    # Form submit - POST ile
+    url = f"{BASE_URL}/index.php?button=Termine%20suchen"
+    form_data = {
+        'land_abk': 'he',
+        'ger_id': gericht_code,
+        'button': 'Termine suchen'
+    }
+
     try:
-        r = requests.get(url, timeout=30)
+        r = session.post(url, data=form_data, timeout=30)
         r.raise_for_status()
     except Exception as e:
         print(f"[{gericht_name}] Hata: {e}")
