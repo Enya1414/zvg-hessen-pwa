@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#000000">
+<meta name="description" content="ZVG Hessen - Zwangsversteigerungen in Hessen">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🏠%3C/text%3E%3C/svg%3E">
+<title>ZVG Hessen</title>
+<style>
+:root{--r-sm:6px;--r-md:10px;--r-lg:12px;--s-1:4px;--s-2:8px;--s-3:12px;--s-4:16px;--s-5:20px;--s-6:24px;}
+*{box-sizing:border-box;margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;}
+body{background:#fff;color:#111;line-height:1.5;}
+body.dark{background:#0a0a0a;color:#f5f5f5;}
+body.dark .card{background:#141414;border-color:#2a2a2a;}
+body.dark header,body.dark nav{background:#0a0a0a;border-color:#2a2a2a;}
+body.dark input,body.dark select{background:#141414;border-color:#2a2a2a;color:#f5f5f5;}
+body.dark .map-area{background:#141414;}
+body.dark .detail-grid .cell{background:#1a1a1a;}
+body.dark .savings{background:rgba(34,197,94,0.08);}
+button,input,select{font:inherit;}
+button{cursor:pointer;border:none;background:none;color:inherit;}
+input,select{border:1px solid #e5e5e5;border-radius:var(--r-md);padding:10px 12px;background:#fff;color:#111;width:100%;font-size:16px;}
+.card{border:1px solid #e5e5e5;border-radius:var(--r-lg);padding:var(--s-4);margin-bottom:var(--s-3);background:#fff;}
+.btn-primary{background:#111;color:#fff;border-radius:var(--r-md);padding:12px 16px;font-weight:500;width:100%;font-size:16px;}
+.btn-secondary{background:#f5f5f5;color:#111;border:1px solid #e5e5e5;border-radius:var(--r-md);padding:12px 16px;font-weight:500;width:100%;font-size:16px;}
+.tag{display:inline-block;padding:4px 10px;border-radius:var(--r-sm);font-size:12px;background:rgba(59,130,246,0.1);color:#2563eb;font-weight:500;}
+.tag.haus{background:rgba(34,197,94,0.1);color:#16a34a;}
+.tag.wohnung{background:rgba(59,130,246,0.1);color:#2563eb;}
+.tag.grund{background:rgba(168,85,247,0.1);color:#9333ea;}
+.label{font-size:12px;color:#737373;margin-bottom:4px;}
+.value{font-size:16px;font-weight:500;color:#111;}
+body.dark .value{color:#f5f5f5;}
+header{display:flex;align-items:center;justify-content:space-between;padding:var(--s-3) var(--s-4);border-bottom:1px solid #e5e5e5;position:sticky;top:0;background:#fff;z-index:10;}
+.logo{font-size:18px;font-weight:500;}
+.icon-btn{width:40px;height:40px;display:flex;align-items:center;justify-content:center;border-radius:var(--r-md);border:1px solid #e5e5e5;background:transparent;}
+nav{position:fixed;bottom:0;left:0;right:0;display:flex;justify-content:space-around;padding:var(--s-2) 0;border-top:1px solid #e5e5e5;background:#fff;z-index:10;}
+nav button{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;font-size:11px;color:#737373;padding:4px 0;background:none;border:none;}
+nav button.active{color:#111;font-weight:500;}
+body.dark nav button.active{color:#f5f5f5;}
+.cookie-banner{padding:var(--s-3) var(--s-4);border-bottom:1px solid #e5e5e5;background:#f9fafb;position:sticky;top:0;z-index:20;}
+body.dark .cookie-banner{background:#141414;border-color:#2a2a2a;}
+.cookie-banner p{font-size:13px;color:#525252;margin-bottom:var(--s-3);}
+.cookie-actions{display:flex;gap:var(--s-2);}
+.footer-links{display:flex;flex-wrap:wrap;gap:var(--s-3);padding:var(--s-4);font-size:12px;color:#737373;justify-content:center;border-top:1px solid #e5e5e5;margin-top:var(--s-4);margin-bottom:80px;}
+.footer-links button{color:#525252;text-decoration:underline;background:none;border:none;font-size:12px;}
+.map-area{position:relative;width:100%;height:280px;border:1px solid #e5e5e5;border-radius:var(--r-lg);overflow:hidden;background:#f5f5f5;}
+body.dark .map-area{background:#141414;border-color:#2a2a2a;}
+.map-area svg{width:100%;height:100%;}
+.map-dot{fill:#111;cursor:pointer;}
+body.dark .map-dot{fill:#f5f5f5;}
+.map-dot.active{fill:#2563eb;}
+.map-circle{fill:none;stroke:#2563eb;stroke-width:1.5;stroke-dasharray:4 2;opacity:.6;pointer-events:none;}
+.map-center{fill:#2563eb;}
+.result-count{font-size:13px;color:#525252;margin:var(--s-2) 0;}
+.detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:var(--s-3);margin:var(--s-3) 0;}
+.detail-grid .cell{background:#f9fafb;padding:var(--s-3);border-radius:var(--r-md);}
+body.dark .detail-grid .cell{background:#1a1a1a;}
+.calc-result .row{display:flex;justify-content:space-between;padding:var(--s-2) 0;border-bottom:1px solid #e5e5e5;}
+body.dark .calc-result .row{border-color:#2a2a2a;}
+.calc-result .row.total{font-weight:500;border-bottom:none;padding-top:var(--s-3);}
+.calc-result .savings{background:rgba(34,197,94,0.08);border:1px solid rgba(34,197,94,0.25);border-radius:var(--r-md);padding:var(--s-3);margin-top:var(--s-3);}
+.calc-result .savings .label{color:#16a34a;font-size:12px;margin-bottom:4px;}
+.legal-page{padding:var(--s-4);padding-bottom:100px;}
+.legal-page h2{font-size:18px;font-weight:500;margin-bottom:var(--s-3);}
+.legal-page p{font-size:14px;color:#525252;line-height:1.6;margin-bottom:var(--s-3);}
+body.dark .legal-page p{color:#a3a3a3;}
+.back-btn{margin-bottom:var(--s-3);font-size:14px;color:#525252;display:flex;align-items:center;gap:var(--s-2);background:none;border:none;}
+.filter-row{display:flex;gap:var(--s-2);margin-bottom:var(--s-3);overflow-x:auto;padding-bottom:4px;}
+.filter-row button{white-space:nowrap;padding:6px 14px;border-radius:var(--r-sm);border:1px solid #e5e5e5;font-size:13px;background:#fff;color:#111;}
+body.dark .filter-row button{background:#141414;border-color:#2a2a2a;color:#f5f5f5;}
+.filter-row button.active{background:#111;color:#fff;border-color:#111;}
+body.dark .filter-row button.active{background:#f5f5f5;color:#111;border-color:#f5f5f5;}
+.page{display:none;}
+.page.active{display:block;}
+.content-wrap{padding:var(--s-3) var(--s-4);padding-bottom:100px;}
+.empty-state{text-align:center;padding:var(--s-6) var(--s-4);color:#737373;}
+.loading{display:flex;align-items:center;justify-content:center;padding:var(--s-6);color:#737373;font-size:14px;}
+.legal-warning{background:#fef3c7;border:1px solid #fbbf24;border-radius:var(--r-md);padding:var(--s-3);font-size:13px;color:#92400e;margin-bottom:var(--s-3);}
+body.dark .legal-warning{background:rgba(251,191,36,0.08);border-color:rgba(251,191,36,0.3);color:#fbbf24;}
+</style>
+</head>
+<body>
+
+<div class="cookie-banner" id="cookieBanner">
+  <p>Bu uygulama deneyiminizi iyileştirmek için çerezler kullanır. Sadece gerekli çerezleri kabul edebilir veya tümünü kabul edebilirsiniz.</p>
+  <div class="cookie-actions">
+    <button class="btn-secondary" onclick="acceptCookies(false)">Sadece gerekli</button>
+    <button class="btn-primary" onclick="acceptCookies(true)">Tümünü kabul et</button>
+  </div>
+</div>
+
+<header>
+  <div class="logo">ZVG Hessen</div>
+  <button class="icon-btn" onclick="toggleTheme()" title="Tema değiştir">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+  </button>
+</header>
+
+<div class="content-wrap">
+
+  <div class="legal-warning">
+    <strong>Yasal Uyarı:</strong> Bu uygulama zvg-portal.de ile bağlantılı değildir. Tüm veriler kamu kaynaklarından derlenmiştir. Teklif vermeden önce lütfen resmi kaynağı kontrol edin.
+  </div>
+
+  <div class="page active" id="page-home">
+    <input type="text" id="searchInput" placeholder="Şehir veya anahtar kelime ara..." oninput="filterList()" style="margin-bottom:var(--s-3);">
+    <div class="filter-row">
+      <button class="active" onclick="setType('all',this)">Tümü</button>
+      <button onclick="setType('Haus',this)">Haus</button>
+      <button onclick="setType('Wohnung',this)">Wohnung</button>
+      <button onclick="setType('Grundstück',this)">Grundstück</button>
+    </div>
+    <div id="auctionList"><div class="loading">Veriler yükleniyor...</div></div>
+  </div>
+
+  <div class="page" id="page-map">
+    <div style="margin-bottom:var(--s-3);">
+      <div class="label">Merkez nokta seçin veya haritaya tıklayın</div>
+      <select id="centerCity" onchange="updateMap()" style="margin-bottom:var(--s-2);">
+        <option value="">-- Şehir seçin --</option>
+      </select>
+      <div class="label">Arama çapı: <span id="radiusVal">30</span> km</div>
+      <input type="range" id="radiusSlider" min="5" max="100" value="30" oninput="updateMap()" style="margin-bottom:var(--s-2);width:100%;">
+      <button class="btn-primary" onclick="filterByRadius()">Filtrele</button>
+    </div>
+    <div class="result-count" id="mapResultCount"></div>
+    <div class="map-area" id="mapArea" onclick="mapClick(event)">
+      <svg viewBox="0 0 200 160" id="mapSvg">
+        <rect x="0" y="0" width="200" height="160" fill="transparent" stroke="#e5e5e5" rx="12"/>
+      </svg>
+    </div>
+    <div id="radiusList" style="margin-top:var(--s-3);"></div>
+  </div>
+
+  <div class="page" id="page-calc">
+    <div class="card">
+      <div class="label">Zuschlagspreis (€)</div>
+      <input type="number" id="calcPrice" value="250000" min="0" step="1000">
+      <div style="height:var(--s-3);"></div>
+      <button class="btn-primary" onclick="calculate()">Hesapla</button>
+    </div>
+    <div class="card calc-result" id="calcResult" style="display:none;">
+      <div class="row"><span>Zuschlagspreis</span><span id="cPrice"></span></div>
+      <div class="row"><span>Grunderwerbsteuer (6%)</span><span id="cTax"></span></div>
+      <div class="row"><span>Zuschlagsgebühr (GKG)</span><span id="cGkg"></span></div>
+      <div class="row"><span>Grundbuchkosten</span><span id="cGb"></span></div>
+      <div class="row"><span>Verzinsung (4%, 7 Hafta)</span><span id="cZins"></span></div>
+      <div class="row total"><span>Gesamtkosten</span><span id="cTotal"></span></div>
+      <div class="savings">
+        <div class="label">Tasarruf vs. normaler Kauf</div>
+        <div class="value" id="cSave"></div>
+        <div style="font-size:12px;color:#737373;margin-top:4px;">Makler- und Notargebühren entfallen</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="page" id="page-detail">
+    <button class="back-btn" onclick="goHome()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg> Geri</button>
+    <div id="detailContent"></div>
+  </div>
+
+  <div class="page legal-page" id="page-impressum">
+    <button class="back-btn" onclick="goHome()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg> Geri</button>
+    <h2>Impressum</h2>
+    <p>ZVG Hessen PWA<br>Musterstraße 1<br>60313 Frankfurt am Main<br>Deutschland<br><br>E-Mail: info@zvg-hessen-demo.de<br><br>Vertreten durch: Max Mustermann<br>USt-IdNr.: DE123456789</p>
+  </div>
+
+  <div class="page legal-page" id="page-datenschutz">
+    <button class="back-btn" onclick="goHome()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg> Geri</button>
+    <h2>Datenschutz</h2>
+    <p>Verantwortlicher für die Datenverarbeitung: ZVG Hessen Demo.<br><br>Wir verarbeiten personenbezogene Daten nur im Rahmen der gesetzlichen Bestimmungen der DSGVO. Es werden keine personenbezogenen Daten an Dritte weitergegeben. Cookies werden nur mit Ihrer Einwilligung gesetzt.</p>
+  </div>
+
+  <div class="page legal-page" id="page-agb">
+    <button class="back-btn" onclick="goHome()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg> Geri</button>
+    <h2>AGB</h2>
+    <p>Diese Anwendung dient ausschließlich zu Informationszwecken. Es besteht kein Anspruch auf Vollständigkeit oder Richtigkeit der Daten. Alle Angaben ohne Gewähr. Die Nutzung erfolgt auf eigenes Risiko.</p>
+  </div>
+
+  <div class="page legal-page" id="page-kontakt">
+    <button class="back-btn" onclick="goHome()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg> Geri</button>
+    <h2>Kontakt</h2>
+    <p>E-Mail: info@zvg-hessen-demo.de<br>Telefon: +49 69 12345678<br>Mo-Fr: 09:00 - 17:00 Uhr</p>
+  </div>
+
+  <div class="page legal-page" id="page-hinweise">
+    <button class="back-btn" onclick="goHome()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg> Geri</button>
+    <h2>Yasal Uyarı</h2>
+    <p>Diese App ist ein unabhängiger Service und nicht mit dem offiziellen ZVG-Portal (zvg-portal.de) verbunden. Alle Versteigerungsdaten stammen aus öffentlichen Quellen. Für die Richtigkeit und Aktualität der Daten übernehmen wir keine Gewähr. Bitte prüfen Sie alle Angaben vor einer Gebotsabgabe auf dem offiziellen ZVG-Portal.</p>
+  </div>
+
+  <div class="footer-links">
+    <button onclick="showPage('page-hinweise')">Yasal Uyarı</button>
+    <button onclick="showPage('page-impressum')">Impressum</button>
+    <button onclick="showPage('page-datenschutz')">Datenschutz</button>
+    <button onclick="showPage('page-agb')">AGB</button>
+    <button onclick="showPage('page-kontakt')">Kontakt</button>
+  </div>
+</div>
+
+<nav>
+  <button class="active" onclick="switchTab('home',this)">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+    Liste
+  </button>
+  <button onclick="switchTab('map',this)">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg>
+    Harita
+  </button>
+  <button onclick="switchTab('calc',this)">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" y1="6" x2="16" y2="6"/><line x1="8" y1="10" x2="16" y2="10"/><line x1="8" y1="14" x2="12" y2="14"/></svg>
+    Hesapla
+  </button>
+</nav>
+
+<script>
+let auctions=[];
+let cities=[];
+let currentType='all';
+let centerPoint=null;
+const HESSEN_CITIES=[{name:"Frankfurt",lat:50.11,lon:8.68},{name:"Wiesbaden",lat:50.08,lon:8.24},{name:"Kassel",lat:51.31,lon:9.49},{name:"Darmstadt",lat:49.87,lon:8.65},{name:"Offenbach",lat:50.10,lon:8.76},{name:"Hanau",lat:50.13,lon:8.92},{name:"Fulda",lat:50.55,lon:9.68},{name:"Gießen",lat:50.59,lon:8.67},{name:"Marburg",lat:50.81,lon:8.77},{name:"Wetzlar",lat:50.56,lon:8.50},{name:"Limburg",lat:50.38,lon:8.05},{name:"Bad Homburg",lat:50.22,lon:8.62}];
+function toXY(lat,lon){return{x:(lon-7.8)/2.4*200,y:160-(lat-49.4)/2.2*160};}
+function haversine(lat1,lon1,lat2,lon2){const R=6371,dLat=(lat2-lat1)*Math.PI/180,dLon=(lon2-lon1)*Math.PI/180,a=Math.sin(dLat/2)**2+Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2;return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));}
+async function init(){try{const r=await fetch('data/auctions.json');const d=await r.json();auctions=d.auctions||[];cities=HESSEN_CITIES;renderList();initMap();initCitySelect();}catch(e){document.getElementById('auctionList').innerHTML='<div class="empty-state"><p>Veri yüklenemedi.</p></div>';}}
+function initCitySelect(){const sel=document.getElementById('centerCity');cities.forEach(c=>{const o=document.createElement('option');o.value=JSON.stringify(c);o.textContent=c.name;sel.appendChild(o);});}
+function renderList(data=auctions){const el=document.getElementById('auctionList');el.innerHTML='';if(data.length===0){el.innerHTML='<div class="empty-state"><p>Sonuç bulunamadı.</p></div>';return;}data.forEach(a=>{const tagClass=a.type==='Haus'?'haus':a.type==='Wohnung'?'wohnung':'grund';const vw=(a.verkehrswert||0).toLocaleString('de-DE');el.innerHTML+=`<div class="card" onclick="showDetail('${a.id}')" style="cursor:pointer;"><div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:var(--s-2);gap:var(--s-2);"><div style="font-weight:500;font-size:15px;flex:1;">${a.title||'İlan'}</div><span class="tag ${tagClass}">${a.type||'Haus'}</span></div><div style="display:flex;justify-content:space-between;font-size:13px;color:#737373;"><span>${a.city||''} · ${a.ag||''}</span><span>${a.date||''}</span></div><div style="margin-top:var(--s-2);font-weight:500;">${vw} €</div></div>`;});}
+function filterList(){const q=document.getElementById('searchInput').value.toLowerCase();const filtered=auctions.filter(a=>{const mType=currentType==='all'||a.type===currentType;return mType&&((a.title||'').toLowerCase().includes(q)||(a.city||'').toLowerCase().includes(q)||(a.ag||'').toLowerCase().includes(q));});renderList(filtered);}
+function setType(t,btn){currentType=t;document.querySelectorAll('.filter-row button').forEach(b=>b.classList.remove('active'));btn.classList.add('active');filterList();}
+function initMap(){const svg=document.getElementById('mapSvg');svg.innerHTML='<rect x="0" y="0" width="200" height="160" fill="transparent" stroke="currentColor" stroke-opacity="0.15" rx="12"/>';cities.forEach(c=>{const p=toXY(c.lat,c.lon);svg.innerHTML+=`<circle class="map-dot" cx="${p.x}" cy="${p.y}" r="3" onclick="event.stopPropagation();selectCity('${c.name}')"/>`;});}
+function selectCity(name){const c=cities.find(x=>x.name===name);if(!c)return;centerPoint=c;document.getElementById('centerCity').value=JSON.stringify(c);updateMap();}
+function mapClick(e){const rect=e.currentTarget.getBoundingClientRect();const x=(e.clientX-rect.left)/rect.width*200;const y=(e.clientY-rect.top)/rect.height*160;const lon=7.8+x/200*2.4;const lat=49.4+(160-y)/160*2.2;centerPoint={name:"Seçili Nokta",lat,lon};document.getElementById('centerCity').value='';updateMap();}
+function updateMap(){const svg=document.getElementById('mapSvg');const r=parseInt(document.getElementById('radiusSlider').value);document.getElementById('radiusVal').textContent=r;if(!centerPoint)return;const p=toXY(centerPoint.lat,centerPoint.lon);const rPx=(r/111)/2.2*160;let html='<rect x="0" y="0" width="200" height="160" fill="transparent" stroke="currentColor" stroke-opacity="0.15" rx="12"/>';cities.forEach(c=>{const pt=toXY(c.lat,c.lon);const d=haversine(centerPoint.lat,centerPoint.lon,c.lat,c.lon);const active=d<=r?'active':'';html+=`<circle class="map-dot ${active}" cx="${pt.x}" cy="${pt.y}" r="3" onclick="event.stopPropagation();selectCity('${c.name}')"/>`;});html+=`<circle class="map-circle" cx="${p.x}" cy="${p.y}" r="${rPx}"/>`;html+=`<circle class="map-center" cx="${p.x}" cy="${p.y}" r="4"/>`;svg.innerHTML=html;}
+function filterByRadius(){if(!centerPoint)return;const r=parseInt(document.getElementById('radiusSlider').value);const filtered=auctions.filter(a=>a.lat&&a.lon&&haversine(centerPoint.lat,centerPoint.lon,a.lat,a.lon)<=r);document.getElementById('mapResultCount').textContent=`${filtered.length} sonuç bulundu (${r} km çap)`;const el=document.getElementById('radiusList');el.innerHTML='';if(filtered.length===0){el.innerHTML='<div style="color:#737373;font-size:13px;">Seçili çapta ilan bulunamadı.</div>';return;}filtered.forEach(a=>{const tagClass=a.type==='Haus'?'haus':a.type==='Wohnung'?'wohnung':'grund';const vw=(a.verkehrswert||0).toLocaleString('de-DE');el.innerHTML+=`<div class="card" onclick="showDetail('${a.id}')" style="cursor:pointer;"><div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:var(--s-2);gap:var(--s-2);"><div style="font-weight:500;font-size:15px;flex:1;">${a.title||'İlan'}</div><span class="tag ${tagClass}">${a.type||'Haus'}</span></div><div style="display:flex;justify-content:space-between;font-size:13px;color:#737373;"><span>${a.city||''} · ${a.ag||''}</span><span>${vw} €</span></div></div>`;});}
+function showDetail(id){const a=auctions.find(x=>x.id===id);if(!a)return;const tagClass=a.type==='Haus'?'haus':a.type==='Wohnung'?'wohnung':'grund';const vw=(a.verkehrswert||0).toLocaleString('de-DE');document.getElementById('detailContent').innerHTML=`<div class="card"><div style="width:100%;height:180px;background:#f5f5f5;border-radius:var(--r-md);display:flex;align-items:center;justify-content:center;color:#a3a3a3;font-size:13px;margin-bottom:var(--s-3);">Foto: ${a.title||'İlan'}</div><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--s-3);gap:var(--s-2);"><h2 style="font-size:18px;font-weight:500;flex:1;">${a.title||'İlan'}</h2><span class="tag ${tagClass}">${a.type||'Haus'}</span></div><div class="detail-grid"><div class="cell"><div class="label">Verkehrswert</div><div class="value">${vw} €</div></div><div class="cell"><div class="label">Termin</div><div class="value">${a.date||'-'}</div></div><div class="cell"><div class="label">Şehir</div><div class="value">${a.city||'-'}</div></div><div class="cell"><div class="label">Amtsgericht</div><div class="value" style="font-size:13px;">${a.ag||'-'}</div></div></div><div style="margin-top:var(--s-3);padding:var(--s-3);background:#f9fafb;border-radius:var(--r-md);font-size:13px;color:#525252;line-height:1.5;">Bu ilan demo amaçlıdır. Gerçek veriler için lütfen <strong>zvg-portal.de</strong> adresini kontrol edin.</div></div>`;showPage('page-detail');}
+function gkgFee(p){if(p<=50000)return 294;if(p<=100000)return 489;if(p<=200000)return 1176;if(p<=300000)return 1683;if(p<=400000)return 2190;if(p<=500000)return 2697;return Math.round(p*0.0054);}
+function calculate(){const p=parseFloat(document.getElementById('calcPrice').value)||0;const tax=Math.round(p*0.06);const gkg=gkgFee(p);const gb=Math.round(p*0.005+50);const zins=Math.round(p*0.04*7/52);const total=p+tax+gkg+gb+zins;const normal=p+Math.round(p*0.0357)+Math.round(p*0.015)+Math.round(p*0.005+50)+tax;const save=normal-total;document.getElementById('cPrice').textContent=p.toLocaleString('de-DE')+' €';document.getElementById('cTax').textContent=tax.toLocaleString('de-DE')+' €';document.getElementById('cGkg').textContent=gkg.toLocaleString('de-DE')+' €';document.getElementById('cGb').textContent=gb.toLocaleString('de-DE')+' €';document.getElementById('cZins').textContent=zins.toLocaleString('de-DE')+' €';document.getElementById('cTotal').textContent=total.toLocaleString('de-DE')+' €';document.getElementById('cSave').textContent=save.toLocaleString('de-DE')+' €';document.getElementById('calcResult').style.display='block';}
+function showPage(id){document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));document.getElementById(id).classList.add('active');window.scrollTo(0,0);}
+function goHome(){showPage('page-home');switchTab('home',document.querySelector('nav button'))}
+function switchTab(tab,btn){const map={home:'page-home',map:'page-map',calc:'page-calc'};showPage(map[tab]);document.querySelectorAll('nav button').forEach(b=>b.classList.remove('active'));btn.classList.add('active');}
+function toggleTheme(){document.body.classList.toggle('dark');localStorage.setItem('theme',document.body.classList.contains('dark')?'dark':'light');}
+function acceptCookies(all){document.getElementById('cookieBanner').style.display='none';localStorage.setItem('cookies',all?'all':'essential');}
+if(localStorage.getItem('theme')==='dark'||(!localStorage.getItem('theme')&&window.matchMedia('(prefers-color-scheme:dark)').matches)){document.body.classList.add('dark');}
+init();
+if('serviceWorker'in navigator){navigator.serviceWorker.register('sw.js').catch(()=>{});}
+</script>
+</body>
+</html>
