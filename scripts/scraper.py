@@ -13,28 +13,28 @@ except ImportError:
     sys.exit(1)
 
 HESSEN_GERICHTE = {
-    "3402": "Frankfurt am Main",
-    "3403": "Wiesbaden",
-    "3404": "Kassel",
-    "3405": "Darmstadt",
-    "3406": "Offenbach",
-    "3407": "Hanau",
-    "3408": "Fulda",
-    "3409": "Gießen",
-    "3410": "Marburg",
-    "3411": "Wetzlar",
-    "3412": "Limburg",
-    "3413": "Bad Homburg",
-    "3414": "Bad Hersfeld",
-    "3415": "Friedberg",
-    "3416": "Hofgeismar",
-    "3417": "Homberg (Efze)",
-    "3418": "Königstein",
-    "3419": "Korbach",
-    "3420": "Lauterbach",
-    "3421": "Melsungen",
-    "3422": "Rüsselsheim",
-    "3423": "Schlüchtern",
+    "HE1100": "Frankfurt am Main",
+    "HE1200": "Wiesbaden",
+    "HE1300": "Kassel",
+    "HE1400": "Darmstadt",
+    "HE1500": "Offenbach",
+    "HE1600": "Hanau",
+    "HE1700": "Fulda",
+    "HE1800": "Gießen",
+    "HE1900": "Marburg",
+    "HE2000": "Wetzlar",
+    "HE2100": "Limburg",
+    "HE2200": "Bad Homburg",
+    "HE2300": "Bad Hersfeld",
+    "HE2400": "Friedberg",
+    "HE2500": "Hofgeismar",
+    "HE2600": "Homberg (Efze)",
+    "HE2700": "Königstein",
+    "HE2800": "Korbach",
+    "HE2900": "Lauterbach",
+    "HE3000": "Melsungen",
+    "HE3100": "Rüsselsheim",
+    "HE3200": "Schlüchtern",
 }
 
 BASE_URL = "https://www.zvg-portal.de"
@@ -60,7 +60,7 @@ def fetch_auctions(gericht_code, gericht_name):
         print(f"[{gericht_name}] Ana sayfa hatası: {e}")
         return []
 
-    time.sleep(2)
+    time.sleep(1)
 
     url = f"{BASE_URL}/index.php?button=Termine%20suchen"
     form_data = {
@@ -77,23 +77,24 @@ def fetch_auctions(gericht_code, gericht_name):
         print(f"[{gericht_name}] POST hatası: {e}")
         return []
 
+    if gericht_code == "HE1100":
+        print(f"[DEBUG] HTML (ilk 3000):\n{r.text[:3000]}")
+
     soup = BeautifulSoup(r.text, "html.parser")
-
-    if gericht_code == "3402":
-        all_rows = soup.find_all("tr")
-        print(f"[DEBUG] Toplam TR: {len(all_rows)}")
-        classes = set()
-        for row in all_rows[:20]:
-            if row.get('class'):
-                classes.add(str(row.get('class')))
-        print(f"[DEBUG] TR class'ları: {classes}")
-        print(f"[DEBUG] HTML:\n{r.text[:2000]}")
-
     rows = soup.find_all("tr", class_=re.compile(r"treffer[12]"))
 
     if not rows:
-        rows = [tr for tr in soup.find_all("tr") if len(tr.find_all("td")) >= 4]
-        print(f"[{gericht_name}] treffer bulunamadı, fallback: {len(rows)} satır")
+        all_trs = soup.find_all("tr")
+        rows = []
+        for tr in all_trs:
+            tds = tr.find_all("td")
+            if len(tds) >= 4:
+                text = tr.get_text(strip=True).lower()
+                if "aktenzeichen" in text or "termin" in text:
+                    continue
+                rows.append(tr)
+        if rows:
+            print(f"[{gericht_name}] fallback ile {len(rows)} satır bulundu")
 
     results = []
     for row in rows:
@@ -105,6 +106,9 @@ def fetch_auctions(gericht_code, gericht_name):
         termin_text = cells[1].get_text(strip=True)
         art_ort = cells[2].get_text(strip=True)
         verkehrswert_text = cells[3].get_text(strip=True)
+
+        if not aktenzeichen or len(aktenzeichen) < 3:
+            continue
 
         vw = 0
         vw_clean = re.sub(r"[^\d]", "", verkehrswert_text)
@@ -127,43 +131,5 @@ def fetch_auctions(gericht_code, gericht_name):
         if m_date:
             termin = f"{m_date.group(3)}-{m_date.group(2)}-{m_date.group(1)}"
 
-        if not aktenzeichen:
-            continue
-
         results.append({
-            "id": f"{gericht_code}-{aktenzeichen}",
-            "title": art_ort,
-            "city": gericht_name,
-            "type": typ,
-            "verkehrswert": vw,
-            "date": termin,
-            "ag": f"AG {gericht_name}",
-            "aktenzeichen": aktenzeichen,
-            "termin_raw": termin_text,
-        })
-
-    print(f"[{gericht_name}] {len(results)} ilan bulundu.")
-    return results
-
-
-def main():
-    all_auctions = []
-    for code, name in HESSEN_GERICHTE.items():
-        auctions = fetch_auctions(code, name)
-        all_auctions.extend(auctions)
-        time.sleep(2)
-
-    output = {
-        "last_updated": datetime.now().isoformat(),
-        "count": len(all_auctions),
-        "auctions": all_auctions,
-    }
-
-    with open("data/auctions.json", "w", encoding="utf-8") as f:
-        json.dump(output, f, ensure_ascii=False, indent=2)
-
-    print(f"Toplam {len(all_auctions)} ilan kaydedildi.")
-
-
-if __name__ == "__main__":
-    main()
+            "id": f"{gericht_code
