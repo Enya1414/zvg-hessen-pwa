@@ -1,5 +1,18 @@
 {
-  "last_updated": "2026-08-05T00:28:49.368963",
-  "count": 0,
-  "auctions": []
+  "last_updated": "2026-08-05T00:37:13.773713",
+  "count": 1,
+  "auctions": [
+    {
+      "id": "M1801-54861",
+      "title": "Gewerbeeinheit (z.B. Laden, Büro), gewerblich genutztes Grundstück, Sonstiges, Industriehalle : Industriestraße 4, 35216",
+      "city": "Biedenkopf",
+      "type": "Grundstueck",
+      "verkehrswert": 2270000,
+      "date": "2026-09-04",
+      "ag": "AG Biedenkopf",
+      "aktenzeichen": "0070 K 0018/2025",
+      "termin_raw": "Freitag, 04. September 2026, 10:30 Uhr",
+      "zvg_id": "54861"
+    }
+  ]
 }
