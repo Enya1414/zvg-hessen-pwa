@@ -62,6 +62,93 @@ HESSEN_GERICHTE = {
 BASE_URL = "https://www.zvg-portal.de"
 
 
+def parse_auctions(html, gericht_code, gericht_name):
+    soup = BeautifulSoup(html, "html.parser")
+    results = []
+
+    links = soup.find_all("a", href=re.compile(r"showZvg"))
+    print("[" + gericht_name + "] Bulunan ilan linki: " + str(len(links)))
+
+    for link in links:
+        table = link.find_parent("table")
+        if not table:
+            continue
+
+        aktenzeichen = link.get_text(strip=True).replace("(Detailansicht)", "").strip()
+
+        href = link.get("href", "")
+        m_id = re.search(r"zvg_id=(\d+)", href)
+        zvg_id = m_id.group(1) if m_id else ""
+
+        objekt = ""
+        verkehrswert_raw = ""
+        termin_raw = ""
+
+        rows = table.find_all("tr")
+        for row in rows:
+            tds = row.find_all("td")
+            if len(tds) < 2:
+                continue
+            label = tds[0].get_text(strip=True).lower()
+            value = tds[1].get_text(" ", strip=True)
+
+            if "objekt" in label or "lage" in label:
+                objekt = value
+            elif "verkehrswert" in label:
+                verkehrswert_raw = value
+            elif "termin" in label and "letzte" not in label:
+                termin_raw = value
+
+        vw = 0
+        vw_clean = re.sub(r"[^\d]", "", verkehrswert_raw.split(",")[0])
+        if vw_clean:
+            try:
+                vw = int(vw_clean)
+            except ValueError:
+                vw = 0
+
+        termin = ""
+        m_date = re.search(r"(\d{2})\.\s*(\w+)\s*(\d{4})", termin_raw)
+        if m_date:
+            monat_map = {
+                "januar": "01", "februar": "02", "maerz": "03", "april": "04",
+                "mai": "05", "juni": "06", "juli": "07", "august": "08",
+                "september": "09", "oktober": "10", "november": "11", "dezember": "12",
+            }
+            monat = monat_map.get(m_date.group(2).lower(), "00")
+            termin = m_date.group(3) + "-" + monat + "-" + m_date.group(1)
+        else:
+            m_date2 = re.search(r"(\d{2})\.(\d{2})\.(\d{4})", termin_raw)
+            if m_date2:
+                termin = m_date2.group(3) + "-" + m_date2.group(2) + "-" + m_date2.group(1)
+
+        obj_lower = objekt.lower()
+        if "wohnung" in obj_lower or "eigentumswohnung" in obj_lower:
+            typ = "Wohnung"
+        elif "grundstuck" in obj_lower or "grundst" in obj_lower or "baugrund" in obj_lower:
+            typ = "Grundstueck"
+        else:
+            typ = "Haus"
+
+        if not aktenzeichen:
+            continue
+
+        results.append({
+            "id": gericht_code + "-" + zvg_id,
+            "title": objekt[:120],
+            "city": gericht_name,
+            "type": typ,
+            "verkehrswert": vw,
+            "date": termin,
+            "ag": "AG " + gericht_name,
+            "aktenzeichen": aktenzeichen,
+            "termin_raw": termin_raw,
+            "zvg_id": zvg_id,
+        })
+
+    return results
+
+
 def fetch_auctions(gericht_code, gericht_name):
     session = requests.Session()
     session.headers.update({
@@ -76,17 +163,14 @@ def fetch_auctions(gericht_code, gericht_name):
 
     try:
         r0 = session.get(BASE_URL + "/index.php?button=Termine%20suchen", timeout=30)
-        print("[" + gericht_name + "] GET: " + str(r0.status_code))
         if r0.status_code != 200:
+            print("[" + gericht_name + "] GET hatasi: " + str(r0.status_code))
             return []
     except Exception as e:
         print("[" + gericht_name + "] GET hatasi: " + str(e))
         return []
 
-    time.sleep(2)
-
-    soup0 = BeautifulSoup(r0.text, "html.parser")
-    form = soup0.find("form", {"name": "globe"})
+    time.sleep(1)
 
     form_data = {
         "land_abk": "he",
@@ -94,28 +178,11 @@ def fetch_auctions(gericht_code, gericht_name):
         "ger_name": gericht_name,
         "button": "Suchen",
         "order_by": "2",
-        "az1": "",
-        "az2": "",
-        "az3": "",
-        "az4": "",
-        "str": "",
-        "hnr": "",
-        "plz": "",
-        "ort": "",
-        "ortsteil": "",
-        "vtermin": "",
-        "btermin": "",
-        "art": "ALL",
-        "obj": "ALL",
-        "etype": "N",
+        "az1": "", "az2": "", "az3": "", "az4": "",
+        "str": "", "hnr": "", "plz": "", "ort": "", "ortsteil": "",
+        "vtermin": "", "btermin": "",
+        "art": "ALL", "obj": "ALL", "etype": "N",
     }
-
-    if form:
-        for inp in form.find_all("input", {"type": "hidden"}):
-            name = inp.get("name")
-            val = inp.get("value", "")
-            if name:
-                form_data[name] = val
 
     try:
         r = session.post(
@@ -129,61 +196,11 @@ def fetch_auctions(gericht_code, gericht_name):
         print("[" + gericht_name + "] POST hatasi: " + str(e))
         return []
 
-    if len(r.text) > 8000:
-        print("[DEBUG] BUYUK SAYFA - " + gericht_name + " (" + str(len(r.text)) + " byte):")
-        print(r.text)
+    if len(r.text) < 8000:
+        print("[" + gericht_name + "] Sonuc yok.")
+        return []
 
-    soup = BeautifulSoup(r.text, "html.parser")
-    rows = soup.find_all("tr", class_=re.compile(r"treffer[12]"))
-    print("[" + gericht_name + "] treffer satirlari: " + str(len(rows)))
-
-    results = []
-    for row in rows:
-        cells = row.find_all("td")
-        if len(cells) < 4:
-            continue
-
-        aktenzeichen = cells[0].get_text(strip=True)
-        termin_text = cells[1].get_text(strip=True)
-        art_ort = cells[2].get_text(strip=True)
-        verkehrswert_text = cells[3].get_text(strip=True)
-
-        if not aktenzeichen or len(aktenzeichen) < 3:
-            continue
-
-        vw = 0
-        vw_clean = re.sub(r"[^\d]", "", verkehrswert_text)
-        if vw_clean:
-            try:
-                vw = int(vw_clean)
-            except ValueError:
-                vw = 0
-
-        art_lower = art_ort.lower()
-        if "wohnung" in art_lower or "eigentumswohnung" in art_lower:
-            typ = "Wohnung"
-        elif "grundstuck" in art_lower or "baugrund" in art_lower:
-            typ = "Grundstueck"
-        else:
-            typ = "Haus"
-
-        termin = ""
-        m_date = re.search(r"(\d{2})\.(\d{2})\.(\d{4})", termin_text)
-        if m_date:
-            termin = m_date.group(3) + "-" + m_date.group(2) + "-" + m_date.group(1)
-
-        results.append({
-            "id": gericht_code + "-" + aktenzeichen,
-            "title": art_ort,
-            "city": gericht_name,
-            "type": typ,
-            "verkehrswert": vw,
-            "date": termin,
-            "ag": "AG " + gericht_name,
-            "aktenzeichen": aktenzeichen,
-            "termin_raw": termin_text,
-        })
-
+    results = parse_auctions(r.text, gericht_code, gericht_name)
     print("[" + gericht_name + "] " + str(len(results)) + " ilan bulundu.")
     return results
 
@@ -193,7 +210,7 @@ def main():
     for code, name in HESSEN_GERICHTE.items():
         auctions = fetch_auctions(code, name)
         all_auctions.extend(auctions)
-        time.sleep(3)
+        time.sleep(2)
 
     output = {
         "last_updated": datetime.now().isoformat(),
