@@ -126,7 +126,7 @@ def parse_auctions(html, gericht_code, gericht_name):
         if "wohnung" in obj_lower or "eigentumswohnung" in obj_lower:
             typ = "Wohnung"
         elif "grundstuck" in obj_lower or "grundst" in obj_lower or "baugrund" in obj_lower:
-            typ = "Grundstueck"
+            typ = "Grundstück"
         else:
             typ = "Haus"
 
@@ -176,7 +176,7 @@ def fetch_auctions(gericht_code, gericht_name):
         "land_abk": "he",
         "ger_id": gericht_code,
         "ger_name": gericht_name,
-        "button": "Suchen",
+        "button": "Termine Suchen",
         "order_by": "2",
         "az1": "", "az2": "", "az3": "", "az4": "",
         "str": "", "hnr": "", "plz": "", "ort": "", "ortsteil": "",
