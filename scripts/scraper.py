@@ -129,9 +129,9 @@ def fetch_auctions(gericht_code, gericht_name):
         print("[" + gericht_name + "] POST hatasi: " + str(e))
         return []
 
-    if gericht_code == "M1201":
-        print("[DEBUG] ilk 2000 karakter:")
-        print(r.text[:2000])
+    if len(r.text) > 8000:
+        print("[DEBUG] BUYUK SAYFA - " + gericht_name + " (" + str(len(r.text)) + " byte):")
+        print(r.text)
 
     soup = BeautifulSoup(r.text, "html.parser")
     rows = soup.find_all("tr", class_=re.compile(r"treffer[12]"))
