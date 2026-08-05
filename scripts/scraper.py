@@ -71,49 +71,71 @@ def fetch_auctions(gericht_code, gericht_name):
         "Accept-Encoding": "gzip, deflate",
         "Connection": "keep-alive",
         "Upgrade-Insecure-Requests": "1",
+        "Referer": BASE_URL + "/",
     })
 
     try:
-        r0 = session.get(BASE_URL + "/", timeout=30)
-        print("[" + gericht_name + "] Ana sayfa: " + str(r0.status_code))
+        r0 = session.get(BASE_URL + "/index.php?button=Termine%20suchen", timeout=30)
+        print("[" + gericht_name + "] GET: " + str(r0.status_code))
         if r0.status_code != 200:
             return []
     except Exception as e:
-        print("[" + gericht_name + "] Ana sayfa hatasi: " + str(e))
+        print("[" + gericht_name + "] GET hatasi: " + str(e))
         return []
 
-    time.sleep(1)
+    time.sleep(2)
 
-    url = BASE_URL + "/index.php?button=Termine%20suchen"
+    soup0 = BeautifulSoup(r0.text, "html.parser")
+    form = soup0.find("form", {"name": "globe"})
+
     form_data = {
         "land_abk": "he",
         "ger_id": gericht_code,
-        "button": "Termine suchen",
+        "ger_name": gericht_name,
+        "button": "Suchen",
+        "order_by": "2",
+        "az1": "",
+        "az2": "",
+        "az3": "",
+        "az4": "",
+        "str": "",
+        "hnr": "",
+        "plz": "",
+        "ort": "",
+        "ortsteil": "",
+        "vtermin": "",
+        "btermin": "",
+        "art": "ALL",
+        "obj": "ALL",
+        "etype": "N",
     }
 
+    if form:
+        for inp in form.find_all("input", {"type": "hidden"}):
+            name = inp.get("name")
+            val = inp.get("value", "")
+            if name:
+                form_data[name] = val
+
     try:
-        r = session.post(url, data=form_data, timeout=30)
+        r = session.post(
+            BASE_URL + "/index.php?button=Suchen",
+            data=form_data,
+            timeout=30,
+        )
         r.raise_for_status()
         print("[" + gericht_name + "] POST: " + str(r.status_code) + ", boyut: " + str(len(r.text)))
     except Exception as e:
         print("[" + gericht_name + "] POST hatasi: " + str(e))
         return []
 
+    if gericht_code == "M1201":
+        print("[DEBUG] ilk 2000 karakter:")
+        print(r.text[:2000])
+
     soup = BeautifulSoup(r.text, "html.parser")
     rows = soup.find_all("tr", class_=re.compile(r"treffer[12]"))
-
-    if not rows:
-        all_trs = soup.find_all("tr")
-        rows = []
-        for tr in all_trs:
-            tds = tr.find_all("td")
-            if len(tds) >= 4:
-                text = tr.get_text(strip=True).lower()
-                if "aktenzeichen" in text or "termin" in text:
-                    continue
-                rows.append(tr)
-        if rows:
-            print("[" + gericht_name + "] fallback: " + str(len(rows)) + " satir")
+    print("[" + gericht_name + "] treffer satirlari: " + str(len(rows)))
 
     results = []
     for row in rows:
@@ -171,7 +193,7 @@ def main():
     for code, name in HESSEN_GERICHTE.items():
         auctions = fetch_auctions(code, name)
         all_auctions.extend(auctions)
-        time.sleep(2)
+        time.sleep(3)
 
     output = {
         "last_updated": datetime.now().isoformat(),
